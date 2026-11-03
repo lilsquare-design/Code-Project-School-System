@@ -1,0 +1,1847 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPortal - School Management System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+              800: '#1e3a8a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar for sleek UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- NOTIFICATION TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- AUTH SCREEN CONTAINER -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-brand-800 to-slate-900">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+      <!-- Decorative element -->
+      <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 mb-3 shadow-inner">
+          <i class="fa-solid fa-graduation-cap text-3xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900">EduPortal</h1>
+        <p class="text-sm text-slate-500 mt-1">Unified School Management System</p>
+      </div>
+
+      <!-- Quick Switch Demo Account Buttons -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-6">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-2 text-center">Quick Demo Switch</span>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="quickLogin('admin')" class="py-1.5 px-2 bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-500 rounded-lg text-xs font-medium text-slate-700 hover:text-brand-600 transition flex flex-col items-center gap-1">
+            <i class="fa-solid fa-user-shield text-indigo-500"></i> Admin
+          </button>
+          <button type="button" onclick="quickLogin('teacher')" class="py-1.5 px-2 bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-500 rounded-lg text-xs font-medium text-slate-700 hover:text-brand-600 transition flex flex-col items-center gap-1">
+            <i class="fa-solid fa-chalkboard-user text-emerald-500"></i> Teacher
+          </button>
+          <button type="button" onclick="quickLogin('parent')" class="py-1.5 px-2 bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-500 rounded-lg text-xs font-medium text-slate-700 hover:text-brand-600 transition flex flex-col items-center gap-1">
+            <i class="fa-solid fa-users text-amber-500"></i> Parent
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Email Address</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-regular fa-envelope"></i>
+            </span>
+            <input type="email" id="loginEmail" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition" placeholder="name@school.edu">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="loginPassword" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition" placeholder="••••••••">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Role Portal</label>
+          <select id="loginRole" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
+            <option value="admin">Administrator</option>
+            <option value="teacher">Teacher</option>
+            <option value="parent">Parent / Guardian</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-brand-500/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+          <span>Sign In to Portal</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 text-center text-xs text-slate-400">
+        EduPortal Platform v3.2 • Secure SSL Enforced
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD APP CONTAINER -->
+  <div id="appScreen" class="hidden flex-1 flex flex-col md:flex-row min-h-screen bg-slate-100">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between transition-all duration-300">
+      <div>
+        <!-- Brand Header -->
+        <div class="p-5 flex items-center justify-between border-b border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xl shadow-lg">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-white text-base leading-tight">EduPortal</h2>
+              <span id="roleBadge" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Role</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Links Container -->
+        <nav id="sidebarNav" class="p-4 space-y-1">
+          <!-- Dynamic Menu Items populated by JS -->
+        </nav>
+      </div>
+
+      <!-- User Info & Logout -->
+      <div class="p-4 border-t border-slate-800">
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-800/60 mb-3">
+          <div id="userAvatar" class="w-9 h-9 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
+            U
+          </div>
+          <div class="overflow-hidden">
+            <p id="userName" class="text-sm font-semibold text-white truncate">User Name</p>
+            <p id="userRoleDetail" class="text-xs text-slate-400 truncate">user@school.edu</p>
+          </div>
+        </div>
+        <button onclick="handleLogout()" class="w-full py-2 px-3 bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 text-slate-400 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      
+      <!-- TOPBAR -->
+      <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div class="flex items-center gap-4">
+          <h1 id="pageTitle" class="text-xl font-bold text-slate-800">Dashboard</h1>
+        </div>
+
+        <!-- Right Utilities -->
+        <div class="flex items-center gap-3">
+          <!-- Parent Child Selector (Only visible for Parent role) -->
+          <div id="childSelectorContainer" class="hidden flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+            <i class="fa-solid fa-child text-amber-600"></i>
+            <span class="text-xs font-semibold text-amber-800">Select Child:</span>
+            <select id="parentChildSelect" onchange="changeSelectedChild()" class="bg-transparent text-xs font-bold text-amber-900 focus:outline-none cursor-pointer">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <button onclick="resetDataToDefault()" title="Reset Mock Data" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg text-sm transition">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+          <div class="h-6 w-px bg-slate-200"></div>
+          <div id="currentDateDisplay" class="text-xs font-medium text-slate-500">--</div>
+        </div>
+      </header>
+
+      <!-- DYNAMIC TAB PANELS CONTAINER -->
+      <div id="dashboardContent" class="p-6 flex-1">
+        <!-- Dynamic views generated by JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- GENERIC MODAL DIALOG -->
+  <div id="modalOverlay" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 id="modalTitle" class="font-bold text-slate-800">Modal Title</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modalBody" class="p-6">
+        <!-- Modal Form / Content injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    // ==========================================
+    // INITIAL MOCK DATA STORAGE INITIALIZATION
+    // ==========================================
+    const INITIAL_STATE = {
+      currentUser: null,
+      selectedChildId: null,
+      users: [
+        { id: 'usr_1', name: 'Dr. Arthur Vance', email: 'admin@school.edu', role: 'admin' },
+        { id: 'usr_2', name: 'Prof. Sarah Jenkins', email: 'sarah@school.edu', role: 'teacher', subject: 'Mathematics', classAssigned: 'Grade 10-A' },
+        { id: 'usr_3', name: 'Mr. Robert Chen', email: 'robert@school.edu', role: 'teacher', subject: 'Science & Physics', classAssigned: 'Grade 10-B' },
+        { id: 'usr_4', name: 'Eleanor Vance (Parent)', email: 'parent@school.edu', role: 'parent', children: ['std_1', 'std_2'] }
+      ],
+      students: [
+        { id: 'std_1', name: 'Lucas Vance', grade: 'Grade 10-A', rollNo: '1001', parentId: 'usr_4' },
+        { id: 'std_2', name: 'Maya Vance', grade: 'Grade 8-B', rollNo: '8023', parentId: 'usr_4' },
+        { id: 'std_3', name: 'Ethan Hunt', grade: 'Grade 10-A', rollNo: '1002', parentId: 'usr_99' },
+        { id: 'std_4', name: 'Chloe Grace', grade: 'Grade 10-A', rollNo: '1003', parentId: 'usr_98' }
+      ],
+      classes: ['Grade 10-A', 'Grade 10-B', 'Grade 8-B', 'Grade 9-A'],
+      subjects: ['Mathematics', 'Science & Physics', 'English Literature', 'History', 'Computer Science'],
+      marks: [
+        { id: 'm_1', studentId: 'std_1', subject: 'Mathematics', examType: 'Mid-Term Exam', score: 92, maxScore: 100, term: 'Term 1', date: '2026-02-15', notes: 'Excellent analytical skills shown.' },
+        { id: 'm_2', studentId: 'std_1', subject: 'Science & Physics', examType: 'Mid-Term Exam', score: 85, maxScore: 100, term: 'Term 1', date: '2026-02-18', notes: 'Good lab work performance.' },
+        { id: 'm_3', studentId: 'std_1', subject: 'English Literature', examType: 'Final Exam', score: 78, maxScore: 100, term: 'Term 1', date: '2026-02-20', notes: 'Well written essay.' },
+        { id: 'm_4', studentId: 'std_2', subject: 'Mathematics', examType: 'Quiz #1', score: 95, maxScore: 100, term: 'Term 1', date: '2026-02-15', notes: 'Perfect score on algebra.' },
+        { id: 'm_5', studentId: 'std_2', subject: 'History', examType: 'Mid-Term Exam', score: 88, maxScore: 100, term: 'Term 1', date: '2026-02-19', notes: 'Strong grasp of historical timeline.' },
+        { id: 'm_6', studentId: 'std_3', subject: 'Mathematics', examType: 'Mid-Term Exam', score: 64, maxScore: 100, term: 'Term 1', date: '2026-02-15', notes: 'Needs revision on calculus.' }
+      ],
+      assignments: [
+        { id: 'as_1', title: 'Calculus Problem Set #3', subject: 'Mathematics', className: 'Grade 10-A', deadline: '2026-03-25', description: 'Complete exercises 1 to 15 on Chapter 4.', attachmentName: 'calculus_worksheet.pdf', status: 'Pending' },
+        { id: 'as_2', title: 'Lab Report: Physics Kinematics', subject: 'Science & Physics', className: 'Grade 10-A', deadline: '2026-03-20', description: 'Submit PDF report on velocity lab experiment.', attachmentName: 'lab_instructions.pdf', status: 'Submitted' },
+        { id: 'as_3', title: 'Shakespeare Essay - Macbeth', subject: 'English Literature', className: 'Grade 10-A', deadline: '2026-03-30', description: '1000-word essay on theme of ambition.', attachmentName: 'essay_rubric.docx', status: 'Pending' }
+      ],
+      fees: [
+        { 
+          studentId: 'std_1', 
+          tuition: 2500, 
+          transport: 400, 
+          library: 100,
+          activity: 200, 
+          paid: 2600, 
+          status: 'Partial',
+          transactions: [
+            { id: 'tx_101', date: '2026-01-10', amount: 1500, note: 'Term 1 Initial Deposit' },
+            { id: 'tx_102', date: '2026-02-05', amount: 1100, note: 'Mid-term Clearance' }
+          ]
+        },
+        { 
+          studentId: 'std_2', 
+          tuition: 2200, 
+          transport: 400, 
+          library: 100,
+          activity: 150, 
+          paid: 2850, 
+          status: 'Paid',
+          transactions: [
+            { id: 'tx_201', date: '2026-01-12', amount: 2850, note: 'Full Annual Clearance' }
+          ]
+        },
+        { 
+          studentId: 'std_3', 
+          tuition: 2500, 
+          transport: 0, 
+          library: 100,
+          activity: 200, 
+          paid: 1000, 
+          status: 'Partial',
+          transactions: [
+            { id: 'tx_301', date: '2026-01-15', amount: 1000, note: 'Initial Registration Deposit' }
+          ]
+        },
+        { 
+          studentId: 'std_4', 
+          tuition: 2500, 
+          transport: 400, 
+          library: 100,
+          activity: 200, 
+          paid: 0, 
+          status: 'Unpaid',
+          transactions: []
+        }
+      ]
+    };
+
+    // Global State Container
+    let state = {};
+
+    // Load State from LocalStorage or initialize
+    function loadState() {
+      const saved = localStorage.getItem('eduportal_state');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch(e) {
+          state = JSON.parse(JSON.stringify(INITIAL_STATE));
+        }
+      } else {
+        state = JSON.parse(JSON.stringify(INITIAL_STATE));
+        saveState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('eduportal_state', JSON.stringify(state));
+    }
+
+    function resetDataToDefault() {
+      if (confirm('Reset all portal state to default demo data?')) {
+        localStorage.removeItem('eduportal_state');
+        loadState();
+        showToast('System data reset successfully!', 'info');
+        if (state.currentUser) {
+          renderApp();
+        }
+      }
+    }
+
+    // ==========================================
+    // NOTIFICATION & UI UTILITIES
+    // ==========================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const bgColors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-brand-600 text-white'
+      };
+
+      const icons = {
+        success: 'fa-circle-check',
+        error: 'fa-circle-exclamation',
+        info: 'fa-circle-info'
+      };
+
+      toast.className = `pointer-events-auto p-4 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium transition-all transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icons[type]} text-lg"></i>
+        <span class="flex-1">${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      // Animate In
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      // Auto Dismiss
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openModal(title, contentHtml) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalBody').innerHTML = contentHtml;
+      document.getElementById('modalOverlay').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.add('hidden');
+    }
+
+    // ==========================================
+    // AUTHENTICATION SYSTEM
+    // ==========================================
+    function quickLogin(role) {
+      const defaultUser = state.users.find(u => u.role === role);
+      if (defaultUser) {
+        document.getElementById('loginEmail').value = defaultUser.email;
+        document.getElementById('loginPassword').value = 'password';
+        document.getElementById('loginRole').value = role;
+        loginUser(defaultUser);
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const role = document.getElementById('loginRole').value;
+
+      const user = state.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
+
+      if (user) {
+        loginUser(user);
+      } else {
+        showToast('Invalid credentials or role mismatch. Try Quick Demo buttons!', 'error');
+      }
+    }
+
+    function loginUser(user) {
+      state.currentUser = user;
+      if (user.role === 'parent' && user.children && user.children.length > 0) {
+        state.selectedChildId = user.children[0];
+      }
+      saveState();
+
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+
+      showToast(`Welcome back, ${user.name}!`, 'success');
+      renderApp();
+    }
+
+    function handleLogout() {
+      state.currentUser = null;
+      saveState();
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('authScreen').classList.remove('hidden');
+      showToast('Signed out successfully.', 'info');
+    }
+
+    // ==========================================
+    // MAIN APP NAVIGATION & DASHBOARD RENDERER
+    // ==========================================
+    let currentTab = 'overview';
+
+    function renderApp() {
+      const user = state.currentUser;
+      if (!user) return;
+
+      // Update User Info Sidebar
+      document.getElementById('userName').innerText = user.name;
+      document.getElementById('userRoleDetail').innerText = user.email;
+      document.getElementById('userAvatar').innerText = user.name.charAt(0);
+      document.getElementById('roleBadge').innerText = user.role;
+
+      // Update Current Date
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-US', options);
+
+      // Handle Parent Child Selector Visibility
+      const childSelector = document.getElementById('childSelectorContainer');
+      if (user.role === 'parent') {
+        childSelector.classList.remove('hidden');
+        populateParentChildSelect();
+      } else {
+        childSelector.classList.add('hidden');
+      }
+
+      // Build Sidebar Navigation Tabs based on Role
+      buildSidebarNav(user.role);
+
+      // Navigate to default tab
+      switchTab(currentTab);
+    }
+
+    function buildSidebarNav(role) {
+      const navContainer = document.getElementById('sidebarNav');
+      navContainer.innerHTML = '';
+
+      let menuItems = [];
+
+      if (role === 'admin') {
+        menuItems = [
+          { id: 'overview', label: 'System Overview', icon: 'fa-chart-pie' },
+          { id: 'users', label: 'Manage Users', icon: 'fa-users-gear' },
+          { id: 'classes', label: 'Classes & Subjects', icon: 'fa-sitemap' },
+          { id: 'admin_fees', label: 'Fee Management', icon: 'fa-file-invoice-dollar' }
+        ];
+      } else if (role === 'teacher') {
+        menuItems = [
+          { id: 'teacher_marks', label: 'Gradebook & Marks', icon: 'fa-file-signature' },
+          { id: 'teacher_assignments', label: 'Assignments', icon: 'fa-book-open' },
+          { id: 'teacher_students', label: 'My Students', icon: 'fa-graduation-cap' }
+        ];
+      } else if (role === 'parent') {
+        menuItems = [
+          { id: 'parent_marks', label: 'Academic Report', icon: 'fa-award' },
+          { id: 'parent_fees', label: 'Fees & Payments', icon: 'fa-receipt' },
+          { id: 'parent_assignments', label: 'Child Assignments', icon: 'fa-tasks' }
+        ];
+      }
+
+      menuItems.forEach((item, idx) => {
+        if (idx === 0 && !currentTab) currentTab = item.id;
+        
+        const btn = document.createElement('button');
+        btn.onclick = () => switchTab(item.id);
+        btn.id = `nav_btn_${item.id}`;
+        btn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
+          currentTab === item.id 
+            ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20' 
+            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        }`;
+        btn.innerHTML = `
+          <i class="fa-solid ${item.icon} w-5 text-center text-sm"></i>
+          <span>${item.label}</span>
+        `;
+        navContainer.appendChild(btn);
+      });
+    }
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+
+      // Update Nav Button Styles
+      document.querySelectorAll('#sidebarNav button').forEach(btn => {
+        btn.className = btn.className.replace('bg-brand-600 text-white shadow-md shadow-brand-500/20', 'text-slate-400 hover:bg-slate-800 hover:text-white');
+      });
+      const activeBtn = document.getElementById(`nav_btn_${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = activeBtn.className.replace('text-slate-400 hover:bg-slate-800 hover:text-white', 'bg-brand-600 text-white shadow-md shadow-brand-500/20');
+      }
+
+      // Render View Content
+      const container = document.getElementById('dashboardContent');
+      const titleElem = document.getElementById('pageTitle');
+
+      if (tabId === 'overview') {
+        titleElem.innerText = 'System Dashboard Overview';
+        container.innerHTML = renderAdminOverview();
+      } else if (tabId === 'users') {
+        titleElem.innerText = 'User & Role Management';
+        container.innerHTML = renderAdminUsers();
+      } else if (tabId === 'classes') {
+        titleElem.innerText = 'Classes & Academic Subjects';
+        container.innerHTML = renderAdminClasses();
+      } else if (tabId === 'admin_fees') {
+        titleElem.innerText = 'System Fee Management';
+        container.innerHTML = renderAdminFees();
+      } else if (tabId === 'teacher_marks') {
+        titleElem.innerText = 'Teacher Mark Entry & Gradebook';
+        container.innerHTML = renderTeacherMarks();
+      } else if (tabId === 'teacher_assignments') {
+        titleElem.innerText = 'Assignment Management';
+        container.innerHTML = renderTeacherAssignments();
+      } else if (tabId === 'teacher_students') {
+        titleElem.innerText = 'Class Roster & Students';
+        container.innerHTML = renderTeacherStudents();
+      } else if (tabId === 'parent_marks') {
+        titleElem.innerText = 'Student Academic Performance';
+        container.innerHTML = renderParentMarks();
+      } else if (tabId === 'parent_fees') {
+        titleElem.innerText = 'Fee Summary & Transactions';
+        container.innerHTML = renderParentFees();
+      } else if (tabId === 'parent_assignments') {
+        titleElem.innerText = 'Homework & Assignments';
+        container.innerHTML = renderParentAssignments();
+      }
+    }
+
+    // ==========================================
+    // 1. ADMIN DASHBOARD VIEWS
+    // ==========================================
+    function renderAdminOverview() {
+      const totalStudents = state.students.length;
+      const totalTeachers = state.users.filter(u => u.role === 'teacher').length;
+      
+      // Calculate financial metrics
+      let totalFeesCollected = 0;
+      let totalFeesExpected = 0;
+      state.fees.forEach(f => {
+        totalFeesCollected += (f.paid || 0);
+        totalFeesExpected += ((f.tuition || 0) + (f.transport || 0) + (f.library || 0) + (f.activity || 0));
+      });
+      const pendingFees = Math.max(0, totalFeesExpected - totalFeesCollected);
+      const activeAssignments = state.assignments.length;
+
+      return `
+        <div class="space-y-6">
+          <!-- Top Stats Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Students</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">${totalStudents}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Faculty</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">${totalTeachers}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-chalkboard-user"></i>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Collected Fees</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">$${totalFeesCollected.toLocaleString()}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending Fees</p>
+                <h3 class="text-2xl font-bold text-rose-600 mt-1">$${pendingFees.toLocaleString()}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-receipt"></i>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assignments</p>
+                <h3 class="text-2xl font-bold text-indigo-600 mt-1">${activeAssignments}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-book-open"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick System Actions & Class Distribution -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-slate-800 text-base">Quick Registration</h3>
+                <button onclick="switchTab('users')" class="text-xs text-brand-600 hover:underline font-semibold">View All Users</button>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Register new faculty members, parents, or students into the school database.</p>
+              <div class="flex gap-3">
+                <button onclick="openAddUserModal('teacher')" class="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold border border-emerald-200 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Add Teacher
+                </button>
+                <button onclick="openAddUserModal('parent')" class="flex-1 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-semibold border border-amber-200 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Add Parent
+                </button>
+                <button onclick="openAddStudentModal()" class="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold border border-blue-200 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Add Student
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 class="font-bold text-slate-800 text-base mb-2">School Class Enrollment</h3>
+              <p class="text-xs text-slate-500 mb-4">Student distribution by grade section.</p>
+              <div class="space-y-3">
+                ${state.classes.map(c => {
+                  const count = state.students.filter(s => s.grade === c).length;
+                  const pct = Math.min(100, Math.round((count / 10) * 100));
+                  return `
+                    <div>
+                      <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-700">${c}</span>
+                        <span class="text-slate-500">${count} Students</span>
+                      </div>
+                      <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-brand-500 rounded-full" style="width: ${Math.max(10, pct)}%"></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminFees() {
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">System-Wide Student Fee Status</h3>
+              <p class="text-xs text-slate-500">Monitor fee clearance, payments, and outstanding balances.</p>
+            </div>
+            <button onclick="openSetFeeStructureModal()" class="py-2 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-sliders"></i> Global Fee Structures
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-4">Student</th>
+                    <th class="p-4">Class</th>
+                    <th class="p-4">Total Fee</th>
+                    <th class="p-4">Amount Paid</th>
+                    <th class="p-4">Balance</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${state.students.map(std => {
+                    const fee = state.fees.find(f => f.studentId === std.id) || { tuition: 2000, transport: 300, library: 100, activity: 100, paid: 0 };
+                    const total = (fee.tuition || 0) + (fee.transport || 0) + (fee.library || 0) + (fee.activity || 0);
+                    const bal = total - (fee.paid || 0);
+
+                    let statusBadge = 'bg-rose-50 text-rose-700 border-rose-200';
+                    let statusLabel = 'Unpaid';
+                    if (bal <= 0) {
+                      statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                      statusLabel = 'Cleared';
+                    } else if (fee.paid > 0) {
+                      statusBadge = 'bg-amber-50 text-amber-700 border-amber-200';
+                      statusLabel = 'Partial';
+                    }
+
+                    return `
+                      <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-bold text-slate-800">${std.name}</td>
+                        <td class="p-4">${std.grade}</td>
+                        <td class="p-4 font-bold text-slate-800">$${total.toLocaleString()}</td>
+                        <td class="p-4 text-emerald-600 font-bold">$${(fee.paid || 0).toLocaleString()}</td>
+                        <td class="p-4 font-bold ${bal > 0 ? 'text-rose-600' : 'text-slate-400'}">$${bal.toLocaleString()}</td>
+                        <td class="p-4">
+                          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge}">${statusLabel}</span>
+                        </td>
+                        <td class="p-4 text-right">
+                          <button onclick="editStudentFee('${std.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">
+                            Edit Fees
+                          </button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminUsers() {
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">System Users & Access Control</h3>
+              <p class="text-xs text-slate-500">Manage teachers, parents, and administrative accounts.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openAddUserModal('teacher')" class="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Add Teacher
+              </button>
+              <button onclick="openAddUserModal('parent')" class="py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Add Parent
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-4">User</th>
+                    <th class="p-4">Email</th>
+                    <th class="p-4">Role</th>
+                    <th class="p-4">Details / Assignment</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${state.users.map(u => {
+                    let roleBadge = 'bg-slate-100 text-slate-700';
+                    if (u.role === 'admin') roleBadge = 'bg-purple-50 text-purple-700 border border-purple-200';
+                    if (u.role === 'teacher') roleBadge = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    if (u.role === 'parent') roleBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
+
+                    let details = '-';
+                    if (u.role === 'teacher') details = `${u.subject || 'N/A'} (${u.classAssigned || 'Unassigned'})`;
+                    if (u.role === 'parent') details = `${(u.children || []).length} Student(s) Linked`;
+
+                    return `
+                      <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-bold text-slate-800">${u.name}</td>
+                        <td class="p-4 font-mono text-slate-500">${u.email}</td>
+                        <td class="p-4">
+                          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${roleBadge}">${u.role}</span>
+                        </td>
+                        <td class="p-4">${details}</td>
+                        <td class="p-4 text-right">
+                          ${u.role !== 'admin' ? `
+                            <button onclick="deleteUser('${u.id}')" class="text-rose-500 hover:text-rose-700 font-semibold text-xs">
+                              <i class="fa-solid fa-trash-can"></i> Delete
+                            </button>
+                          ` : '<span class="text-slate-300 italic">Protected</span>'}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminClasses() {
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-slate-800 text-sm">Class Sections</h3>
+              <button onclick="promptAddClass()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                <i class="fa-solid fa-plus mr-1"></i> Add Class
+              </button>
+            </div>
+            <div class="space-y-2">
+              ${state.classes.map(c => `
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                  <span class="font-bold text-slate-800">${c}</span>
+                  <span class="text-slate-500">${state.students.filter(s => s.grade === c).length} Students</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-slate-800 text-sm">Academic Subjects</h3>
+              <button onclick="promptAddSubject()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                <i class="fa-solid fa-plus mr-1"></i> Add Subject
+              </button>
+            </div>
+            <div class="space-y-2">
+              ${state.subjects.map(s => `
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                  <span class="font-bold text-slate-800">${s}</span>
+                  <i class="fa-solid fa-book-bookmark text-brand-500"></i>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeacherStudents() {
+      const teacher = state.currentUser;
+      const assignedClass = teacher.classAssigned || state.classes[0];
+      const students = state.students.filter(s => s.grade === assignedClass);
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Student Roster - ${assignedClass}</h3>
+              <p class="text-xs text-slate-500">List of enrolled students assigned to your class section.</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-xs font-bold">${students.length} Total Students</span>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-4">Roll No</th>
+                    <th class="p-4">Student Name</th>
+                    <th class="p-4">Class</th>
+                    <th class="p-4">Parent / Guardian</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${students.length === 0 ? `<tr><td colspan="4" class="p-6 text-center text-slate-400">No students enrolled in ${assignedClass}.</td></tr>` : 
+                    students.map(std => {
+                      const parent = state.users.find(u => u.id === std.parentId);
+                      return `
+                        <tr class="hover:bg-slate-50/80 transition">
+                          <td class="p-4 font-mono text-slate-400">${std.rollNo}</td>
+                          <td class="p-4 font-bold text-slate-800">${std.name}</td>
+                          <td class="p-4">${std.grade}</td>
+                          <td class="p-4">${parent ? `${parent.name} (${parent.email})` : 'Unlinked'}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderParentMarks() {
+      const studentId = state.selectedChildId;
+      const student = state.students.find(s => s.id === studentId);
+      const studentMarks = state.marks.filter(m => m.studentId === studentId);
+
+      let avg = 0;
+      if (studentMarks.length > 0) {
+        avg = Math.round(studentMarks.reduce((acc, m) => acc + m.score, 0) / studentMarks.length);
+      }
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Academic Report - ${student ? student.name : 'Student'}</h3>
+              <p class="text-xs text-slate-500">Grade details, examination scores, and teacher performance notes.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs border border-emerald-200">
+                Average Score: ${avg}%
+              </div>
+              <button onclick="downloadReportCard('${student ? student.name : 'Student'}')" class="py-2 px-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-arrow-down"></i> Download Report
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-4">Subject</th>
+                    <th class="p-4">Assessment</th>
+                    <th class="p-4">Score</th>
+                    <th class="p-4">Date Recorded</th>
+                    <th class="p-4">Teacher Remark</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${studentMarks.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-slate-400">No grades recorded for this student yet.</td></tr>` : 
+                    studentMarks.map(m => `
+                      <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-bold text-slate-800">${m.subject}</td>
+                        <td class="p-4">${m.examType || m.term}</td>
+                        <td class="p-4 font-bold text-brand-600">${m.score} / ${m.maxScore}</td>
+                        <td class="p-4 text-slate-400">${m.date || '--'}</td>
+                        <td class="p-4 text-slate-600 italic">${m.notes || 'No notes provided'}</td>
+                      </tr>
+                    `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderParentAssignments() {
+      const studentId = state.selectedChildId;
+      const student = state.students.find(s => s.id === studentId);
+      const studentClass = student ? student.grade : state.classes[0];
+      const childAssignments = state.assignments.filter(a => a.className === studentClass);
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-800 text-sm">Class Assignments (${studentClass})</h3>
+            <p class="text-xs text-slate-500">Track current homework tasks, deadlines, and learning materials.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${childAssignments.length === 0 ? `<div class="col-span-full p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">No active assignments for ${studentClass}.</div>` : 
+              childAssignments.map(as => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-600 text-[10px] font-bold uppercase">${as.subject}</span>
+                      <span class="text-[10px] text-slate-400"><i class="fa-regular fa-clock mr-1"></i>Due: ${as.deadline}</span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">${as.title}</h4>
+                    <p class="text-xs text-slate-500 mb-3">${as.description}</p>
+                    ${as.attachmentName ? `
+                      <div class="px-2.5 py-1.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2 text-[11px] text-slate-600">
+                        <i class="fa-solid fa-paperclip text-brand-500"></i>
+                        <span class="truncate">${as.attachmentName}</span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function populateParentChildSelect() {
+      const parent = state.currentUser;
+      const select = document.getElementById('parentChildSelect');
+      if (!select || !parent || !parent.children) return;
+
+      select.innerHTML = '';
+      parent.children.forEach(childId => {
+        const student = state.students.find(s => s.id === childId);
+        if (student) {
+          const opt = document.createElement('option');
+          opt.value = student.id;
+          opt.innerText = `${student.name} (${student.grade})`;
+          if (student.id === state.selectedChildId) opt.selected = true;
+          select.appendChild(opt);
+        }
+      });
+    }
+
+    function changeSelectedChild() {
+      const select = document.getElementById('parentChildSelect');
+      if (select) {
+        state.selectedChildId = select.value;
+        saveState();
+        renderApp();
+      }
+    }
+
+    function openAddUserModal(role) {
+      const html = `
+        <form onsubmit="submitNewUser(event, '${role}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Full Name</label>
+            <input type="text" id="newUserName" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="newUserEmail" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          ${role === 'teacher' ? `
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assigned Subject</label>
+              <select id="newUserSubject" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+                ${state.subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assigned Class Section</label>
+              <select id="newUserClass" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+                ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
+
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Create Account
+          </button>
+        </form>
+      `;
+      openModal(`Add New ${role.charAt(0).toUpperCase() + role.slice(1)}`, html);
+    }
+
+    function submitNewUser(e, role) {
+      e.preventDefault();
+      const name = document.getElementById('newUserName').value.trim();
+      const email = document.getElementById('newUserEmail').value.trim();
+
+      const newUser = {
+        id: 'usr_' + Date.now(),
+        name,
+        email,
+        role
+      };
+
+      if (role === 'teacher') {
+        newUser.subject = document.getElementById('newUserSubject').value;
+        newUser.classAssigned = document.getElementById('newUserClass').value;
+      } else if (role === 'parent') {
+        newUser.children = [];
+      }
+
+      state.users.push(newUser);
+      saveState();
+      closeModal();
+      showToast(`${role.charAt(0).toUpperCase() + role.slice(1)} account created!`, 'success');
+      renderApp();
+    }
+
+    // ==========================================
+    // 2. TEACHER DASHBOARD VIEWS
+    // ==========================================
+    function renderTeacherMarks() {
+      const teacher = state.currentUser;
+      const assignedClass = document.getElementById('teacherClassSelect')?.value || teacher.classAssigned || state.classes[0];
+      const assignedSubject = document.getElementById('teacherSubjectSelect')?.value || teacher.subject || state.subjects[0];
+      const examType = document.getElementById('teacherExamSelect')?.value || 'Mid-Term Exam';
+
+      const classStudents = state.students.filter(s => s.grade === assignedClass);
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-4">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Class Section</label>
+                <select id="teacherClassSelect" onchange="renderApp()" class="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  ${state.classes.map(c => `<option value="${c}" ${c === assignedClass ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Subject</label>
+                <select id="teacherSubjectSelect" onchange="renderApp()" class="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  ${state.subjects.map(s => `<option value="${s}" ${s === assignedSubject ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Assessment Type</label>
+                <select id="teacherExamSelect" onchange="renderApp()" class="py-2 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <option value="Mid-Term Exam" ${examType === 'Mid-Term Exam' ? 'selected' : ''}>Mid-Term Exam</option>
+                  <option value="Final Exam" ${examType === 'Final Exam' ? 'selected' : ''}>Final Exam</option>
+                  <option value="Quiz #1" ${examType === 'Quiz #1' ? 'selected' : ''}>Quiz #1</option>
+                  <option value="Homework Assignment" ${examType === 'Homework Assignment' ? 'selected' : ''}>Homework Assignment</option>
+                </select>
+              </div>
+            </div>
+
+            <button onclick="submitBatchMarks()" class="py-2.5 px-5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Save & Publish Marks
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+              <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Grade Entry: ${assignedSubject} (${examType})</h3>
+              <span class="text-xs text-slate-500">${classStudents.length} Students in ${assignedClass}</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-100 text-slate-500 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-4">Roll No</th>
+                    <th class="p-4">Student Name</th>
+                    <th class="p-4">Existing Grade</th>
+                    <th class="p-4">Score (Max 100)</th>
+                    <th class="p-4">Teacher Remark / Note</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${classStudents.length === 0 
+                    ? `<tr><td colspan="5" class="p-6 text-center text-slate-400">No students found in this class section.</td></tr>` 
+                    : classStudents.map(std => {
+                        const existing = state.marks.find(m => m.studentId === std.id && m.subject === assignedSubject && m.examType === examType);
+                        const currentScore = existing ? existing.score : '';
+                        const currentNote = existing ? (existing.notes || '') : '';
+                        return `
+                          <tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-4 font-mono text-slate-400">${std.rollNo}</td>
+                            <td class="p-4 font-bold text-slate-800">${std.name}</td>
+                            <td class="p-4">
+                              ${existing 
+                                ? `<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">${existing.score} / 100</span>` 
+                                : `<span class="text-slate-400 italic">Not graded</span>`}
+                            </td>
+                            <td class="p-4">
+                              <input type="number" data-studentid="${std.id}" value="${currentScore}" min="0" max="100" placeholder="0-100" class="student-score-input py-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs w-28 focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold text-slate-800">
+                            </td>
+                            <td class="p-4">
+                              <input type="text" data-studentid="${std.id}" value="${currentNote}" placeholder="Optional note..." class="student-note-input py-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-700">
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeacherAssignments() {
+      return `
+        <div class="space-y-6">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-slate-700">Course Assignments</h3>
+            <button onclick="openCreateAssignmentModal()" class="py-2 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-plus"></i> Create New Assignment
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${state.assignments.map(as => `
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-600 text-[10px] font-bold uppercase">${as.className}</span>
+                    <span class="text-[10px] text-slate-400 font-medium"><i class="fa-regular fa-clock mr-1"></i>Due: ${as.deadline}</span>
+                  </div>
+                  <h4 class="font-bold text-slate-800 text-sm mb-1">${as.title}</h4>
+                  <p class="text-xs text-slate-500 mb-3">${as.description}</p>
+                  ${as.attachmentName ? `
+                    <div class="mb-3 px-2.5 py-1.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2 text-[11px] text-slate-600">
+                      <i class="fa-solid fa-paperclip text-brand-500"></i>
+                      <span class="truncate">${as.attachmentName}</span>
+                    </div>
+                  ` : ''}
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-600">${as.subject}</span>
+                  <button onclick="deleteAssignment('${as.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 3. PARENT DASHBOARD VIEWS
+    // ==========================================
+    function renderParentFees() {
+      const studentId = state.selectedChildId;
+      const student = state.students.find(s => s.id === studentId);
+      const feeData = state.fees.find(f => f.studentId === studentId) || { tuition: 2000, transport: 300, library: 100, activity: 100, paid: 0, status: 'Pending', transactions: [] };
+
+      const totalFee = (feeData.tuition || 0) + (feeData.transport || 0) + (feeData.library || 0) + (feeData.activity || 0);
+      const balance = totalFee - (feeData.paid || 0);
+
+      return `
+        <div class="space-y-6">
+          <!-- Fee Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Term Fees</span>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1">$${totalFee.toLocaleString()}</h3>
+              <p class="text-[10px] text-slate-400 mt-1">Tuition + Transport + Library + Activity</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Amount Paid</span>
+              <h3 class="text-2xl font-bold text-emerald-600 mt-1">$${(feeData.paid || 0).toLocaleString()}</h3>
+              <p class="text-[10px] text-emerald-500 mt-1">Cleared Payments</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Outstanding Balance</span>
+              <h3 class="text-2xl font-bold text-rose-600 mt-1">$${balance.toLocaleString()}</h3>
+              <span class="inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold ${balance <= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${balance <= 0 ? 'Fully Cleared' : 'Payment Due'}</span>
+            </div>
+          </div>
+
+          <!-- Fee Breakdown and Transaction History -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Fee Breakdown -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 class="font-bold text-slate-800 text-sm mb-4">Fee Breakdown Details</h3>
+              <div class="space-y-3 text-xs">
+                <div class="flex justify-between py-2 border-b border-slate-100">
+                  <span class="text-slate-600">Tuition Fee</span>
+                  <span class="font-bold text-slate-800">$${(feeData.tuition || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-slate-100">
+                  <span class="text-slate-600">School Transport</span>
+                  <span class="font-bold text-slate-800">$${(feeData.transport || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-slate-100">
+                  <span class="text-slate-600">Library & Technology Fee</span>
+                  <span class="font-bold text-slate-800">$${(feeData.library || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-slate-100">
+                  <span class="text-slate-600">Extracurricular Activities</span>
+                  <span class="font-bold text-slate-800">$${(feeData.activity || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between py-2 pt-4 font-bold text-sm text-slate-900">
+                  <span>Grand Total</span>
+                  <span>$${totalFee.toLocaleString()}</span>
+                </div>
+              </div>
+
+              ${balance > 0 ? `
+                <button onclick="openPaymentModal('${studentId}', ${balance})" class="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-credit-card"></i> Pay Outstanding Balance ($${balance})
+                </button>
+              ` : `
+                <div class="mt-6 p-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-semibold text-center border border-emerald-200">
+                  <i class="fa-solid fa-circle-check mr-1"></i> All fees cleared for this academic term.
+                </div>
+              `}
+            </div>
+
+            <!-- Transaction History -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-800 text-sm">Payment History Log</h3>
+                <button onclick="downloadFeeReceipt('${student ? student.name : 'Student'}')" class="text-xs text-brand-600 hover:underline font-semibold flex items-center gap-1">
+                  <i class="fa-solid fa-receipt"></i> Printable Statement
+                </button>
+              </div>
+              <div class="space-y-3">
+                ${(feeData.transactions || []).length === 0 
+                  ? `<p class="text-xs text-slate-400">No payment transactions recorded.</p>` 
+                  : feeData.transactions.map(tx => `
+                      <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                        <div>
+                          <p class="font-bold text-slate-800">${tx.note}</p>
+                          <p class="text-[10px] text-slate-400">${tx.date}</p>
+                        </div>
+                        <span class="font-bold text-emerald-600">+$${tx.amount}</span>
+                      </div>
+                    `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // ADDITIONAL HELPER MODALS & HANDLERS
+    // ==========================================
+    function submitBatchMarks() {
+      const subject = document.getElementById('teacherSubjectSelect').value;
+      const examType = document.getElementById('teacherExamSelect').value;
+      const scoreInputs = document.querySelectorAll('.student-score-input');
+      const noteInputs = document.querySelectorAll('.student-note-input');
+
+      let updatedCount = 0;
+      scoreInputs.forEach((input, idx) => {
+        const studentId = input.getAttribute('data-studentid');
+        const scoreVal = input.value;
+        const noteVal = noteInputs[idx] ? noteInputs[idx].value : '';
+
+        if (scoreVal !== '') {
+          const score = parseInt(scoreVal);
+          const existingIndex = state.marks.findIndex(m => m.studentId === studentId && m.subject === subject && m.examType === examType);
+
+          if (existingIndex > -1) {
+            state.marks[existingIndex].score = score;
+            state.marks[existingIndex].notes = noteVal;
+            state.marks[existingIndex].date = new Date().toISOString().split('T')[0];
+          } else {
+            state.marks.push({
+              id: 'm_' + Date.now() + Math.random(),
+              studentId,
+              subject,
+              examType,
+              score,
+              maxScore: 100,
+              term: 'Term 1',
+              date: new Date().toISOString().split('T')[0],
+              notes: noteVal
+            });
+          }
+          updatedCount++;
+        }
+      });
+
+      saveState();
+      showToast(`Published marks for ${updatedCount} students!`, 'success');
+      renderApp();
+    }
+
+    function openCreateAssignmentModal() {
+      const html = `
+        <form onsubmit="submitNewAssignment(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assignment Title</label>
+            <input type="text" id="asTitle" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Subject</label>
+            <select id="asSubject" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${state.subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Target Class</label>
+            <select id="asClass" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Deadline Date</label>
+            <input type="date" id="asDeadline" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Attachment Mock Name (Optional)</label>
+            <input type="text" id="asAttachment" placeholder="e.g. syllabus_guide.pdf" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Instructions / Description</label>
+            <textarea id="asDesc" rows="3" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Publish Assignment
+          </button>
+        </form>
+      `;
+      openModal('Create New Class Assignment', html);
+    }
+
+    function submitNewAssignment(e) {
+      e.preventDefault();
+      const title = document.getElementById('asTitle').value.trim();
+      const subject = document.getElementById('asSubject').value;
+      const className = document.getElementById('asClass').value;
+      const deadline = document.getElementById('asDeadline').value;
+      const attachmentName = document.getElementById('asAttachment').value.trim();
+      const description = document.getElementById('asDesc').value.trim();
+
+      const newAs = {
+        id: 'as_' + Date.now(),
+        title,
+        subject,
+        className,
+        deadline,
+        attachmentName: attachmentName || null,
+        description,
+        status: 'Pending'
+      };
+
+      state.assignments.push(newAs);
+      saveState();
+      closeModal();
+      showToast('Assignment published successfully!', 'success');
+      renderApp();
+    }
+
+    function openPaymentModal(studentId, amountDue) {
+      const html = `
+        <form onsubmit="processPaymentSubmit(event, '${studentId}')" class="space-y-4">
+          <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 text-brand-800 text-xs">
+            <span class="font-bold">Amount Due:</span> $${amountDue.toLocaleString()}
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Cardholder Name</label>
+            <input type="text" required placeholder="John Doe" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Card Number (Mock)</label>
+            <input type="text" required placeholder="4242 •••• •••• 4242" maxlength="19" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Expiry Date</label>
+              <input type="text" placeholder="MM/YY" required maxlength="5" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-700 mb-1">CVC Code</label>
+              <input type="password" placeholder="123" required maxlength="3" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none font-mono">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-lock"></i> Authorize Payment of $${amountDue}
+          </button>
+        </form>
+      `;
+      openModal('Online Fee Payment', html);
+    }
+
+    function processPaymentSubmit(e, studentId) {
+      e.preventDefault();
+      simulateFeePayment(studentId);
+      closeModal();
+    }
+
+    function editStudentFee(studentId) {
+      const student = state.students.find(s => s.id === studentId);
+      const fee = state.fees.find(f => f.studentId === studentId) || { tuition: 2000, transport: 300, library: 100, activity: 100, paid: 0 };
+
+      const html = `
+        <form onsubmit="saveStudentFeeOverride(event, '${studentId}')" class="space-y-4">
+          <p class="text-xs text-slate-500">Modifying fee structure for <strong>${student.name}</strong></p>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Tuition Fee ($)</label>
+            <input type="number" id="editTuition" value="${fee.tuition}" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Transport Fee ($)</label>
+            <input type="number" id="editTransport" value="${fee.transport}" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Library Fee ($)</label>
+            <input type="number" id="editLibrary" value="${fee.library || 100}" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Activity Fee ($)</label>
+            <input type="number" id="editActivity" value="${fee.activity}" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+          </div>
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Save Fee Adjustments
+          </button>
+        </form>
+      `;
+      openModal('Adjust Student Fee Record', html);
+    }
+
+    function saveStudentFeeOverride(e, studentId) {
+      e.preventDefault();
+      let fee = state.fees.find(f => f.studentId === studentId);
+      if (!fee) {
+        fee = { studentId, paid: 0, transactions: [] };
+        state.fees.push(fee);
+      }
+      fee.tuition = parseInt(document.getElementById('editTuition').value) || 0;
+      fee.transport = parseInt(document.getElementById('editTransport').value) || 0;
+      fee.library = parseInt(document.getElementById('editLibrary').value) || 0;
+      fee.activity = parseInt(document.getElementById('editActivity').value) || 0;
+
+      saveState();
+      closeModal();
+      showToast('Fee structure updated for student.', 'success');
+      renderApp();
+    }
+
+    function openSetFeeStructureModal() {
+      const html = `
+        <div class="space-y-4 text-xs">
+          <p class="text-slate-500">Apply standard fee template across all active student records.</p>
+          <div>
+            <label class="block font-bold uppercase text-slate-700 mb-1">Standard Tuition ($)</label>
+            <input type="number" id="globalTuition" value="2500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-700 mb-1">Standard Transport ($)</label>
+            <input type="number" id="globalTransport" value="400" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-700 mb-1">Standard Library ($)</label>
+            <input type="number" id="globalLibrary" value="100" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <button onclick="applyGlobalFeeStructure()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Apply Global Template To All
+          </button>
+        </div>
+      `;
+      openModal('Global Fee Structure Template', html);
+    }
+
+    function applyGlobalFeeStructure() {
+      const t = parseInt(document.getElementById('globalTuition').value) || 2500;
+      const tr = parseInt(document.getElementById('globalTransport').value) || 400;
+      const lib = parseInt(document.getElementById('globalLibrary').value) || 100;
+
+      state.fees.forEach(f => {
+        f.tuition = t;
+        f.transport = tr;
+        f.library = lib;
+      });
+
+      saveState();
+      closeModal();
+      showToast('Global fee structure applied to all students!', 'success');
+      renderApp();
+    }
+
+    function openAddStudentModal() {
+      const parents = state.users.filter(u => u.role === 'parent');
+
+      const html = `
+        <form onsubmit="submitNewStudent(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Student Full Name</label>
+            <input type="text" id="newStudentName" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Roll Number</label>
+            <input type="text" id="newStudentRoll" required value="${1000 + state.students.length + 1}" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Class Grade Section</label>
+            <select id="newStudentGrade" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assign Parent Guardian</label>
+            <select id="newStudentParent" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${parents.map(p => `<option value="${p.id}">${p.name} (${p.email})</option>`).join('')}
+            </select>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Register Student
+          </button>
+        </form>
+      `;
+      openModal('Register New Student', html);
+    }
+
+    function submitNewStudent(e) {
+      e.preventDefault();
+      const name = document.getElementById('newStudentName').value.trim();
+      const rollNo = document.getElementById('newStudentRoll').value.trim();
+      const grade = document.getElementById('newStudentGrade').value;
+      const parentId = document.getElementById('newStudentParent').value;
+
+      const newStudent = {
+        id: 'std_' + Date.now(),
+        name,
+        rollNo,
+        grade,
+        parentId
+      };
+
+      state.students.push(newStudent);
+
+      // Link child to parent
+      const parent = state.users.find(u => u.id === parentId);
+      if (parent) {
+        if (!parent.children) parent.children = [];
+        parent.children.push(newStudent.id);
+      }
+
+      // Initialize Fee record
+      state.fees.push({
+        studentId: newStudent.id,
+        tuition: 2200,
+        transport: 300,
+        activity: 150,
+        paid: 0,
+        status: 'Unpaid',
+        transactions: []
+      });
+
+      saveState();
+      closeModal();
+      showToast(`Student ${name} registered successfully!`, 'success');
+      renderApp();
+    }
+
+    function deleteUser(userId) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        state.users = state.users.filter(u => u.id !== userId);
+        saveState();
+        showToast('User account deleted.', 'info');
+        renderApp();
+      }
+    }
+
+    function promptAddClass() {
+      const name = prompt('Enter new Class Section name (e.g. Grade 11-A):');
+      if (name && !state.classes.includes(name)) {
+        state.classes.push(name);
+        saveState();
+        showToast(`Class ${name} added!`, 'success');
+        renderApp();
+      }
+    }
+
+    function promptAddSubject() {
+      const name = prompt('Enter new Subject name:');
+      if (name && !state.subjects.includes(name)) {
+        state.subjects.push(name);
+        saveState();
+        showToast(`Subject ${name} added!`, 'success');
+        renderApp();
+      }
+    }
+
+    function submitBatchMarks() {
+      const subject = document.getElementById('teacherSubjectSelect').value;
+      const inputs = document.querySelectorAll('.student-score-input');
+
+      let updatedCount = 0;
+      inputs.forEach(input => {
+        const studentId = input.getAttribute('data-studentid');
+        const scoreVal = input.value;
+
+        if (scoreVal !== '') {
+          const score = parseInt(scoreVal);
+          const existingIndex = state.marks.findIndex(m => m.studentId === studentId && m.subject === subject);
+
+          if (existingIndex > -1) {
+            state.marks[existingIndex].score = score;
+            state.marks[existingIndex].date = new Date().toISOString().split('T')[0];
+          } else {
+            state.marks.push({
+              id: 'm_' + Date.now() + Math.random(),
+              studentId,
+              subject,
+              score,
+              maxScore: 100,
+              term: 'Term 1 Final',
+              date: new Date().toISOString().split('T')[0]
+            });
+          }
+          updatedCount++;
+        }
+      });
+
+      saveState();
+      showToast(`Published marks for ${updatedCount} students!`, 'success');
+      renderApp();
+    }
+
+    function openCreateAssignmentModal() {
+      const html = `
+        <form onsubmit="submitNewAssignment(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assignment Title</label>
+            <input type="text" id="asTitle" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Subject</label>
+            <select id="asSubject" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${state.subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Target Class</label>
+            <select id="asClass" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none">
+              ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Deadline Date</label>
+            <input type="date" id="asDeadline" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Instructions / Description</label>
+            <textarea id="asDesc" rows="3" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition">
+            Publish Assignment
+          </button>
+        </form>
+      `;
+      openModal('Create New Class Assignment', html);
+    }
+
+    function submitNewAssignment(e) {
+      e.preventDefault();
+      const title = document.getElementById('asTitle').value.trim();
+      const subject = document.getElementById('asSubject').value;
+      const className = document.getElementById('asClass').value;
+      const deadline = document.getElementById('asDeadline').value;
+      const description = document.getElementById('asDesc').value.trim();
+
+      const newAs = {
+        id: 'as_' + Date.now(),
+        title,
+        subject,
+        className,
+        deadline,
+        description,
+        status: 'Pending'
+      };
+
+      state.assignments.push(newAs);
+      saveState();
+      closeModal();
+      showToast('Assignment published successfully!', 'success');
+      renderApp();
+    }
+
+    function deleteAssignment(id) {
+      if (confirm('Delete this assignment?')) {
+        state.assignments = state.assignments.filter(a => a.id !== id);
+        saveState();
+        showToast('Assignment removed.', 'info');
+        renderApp();
+      }
+    }
+
+    function simulateFeePayment(studentId) {
+      const feeData = state.fees.find(f => f.studentId === studentId);
+      if (!feeData) return;
+
+      const total = feeData.tuition + feeData.transport + feeData.activity;
+      const due = total - feeData.paid;
+
+      if (due <= 0) return;
+
+      feeData.paid += due;
+      feeData.status = 'Paid';
+      feeData.transactions.push({
+        id: 'tx_' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        amount: due,
+        note: 'Online Portal Balance Payment'
+      });
+
+      saveState();
+      showToast(`Payment of $${due} processed successfully!`, 'success');
+      renderApp();
+    }
+
+    function downloadReportCard(studentName) {
+      showToast(`Generating report card PDF for ${studentName}...`, 'info');
+      setTimeout(() => {
+        const dummyText = `OFFICIAL REPORT CARD\nStudent: ${studentName}\nTerm: Term 1\nGenerated: ${new Date().toLocaleDateString()}`;
+        const blob = new Blob([dummyText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${studentName.replace(/\s+/g, '_')}_Academic_Report.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 800);
+    }
+
+    function downloadFeeReceipt(studentName) {
+      showToast(`Generating fee statement PDF for ${studentName}...`, 'info');
+      setTimeout(() => {
+        const dummyText = `OFFICIAL FEE STATEMENT\nStudent: ${studentName}\nStatus: Paid/Cleared\nDate: ${new Date().toLocaleDateString()}`;
+        const blob = new Blob([dummyText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${studentName.replace(/\s+/g, '_')}_Fee_Receipt.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 800);
+    }
+
+    // ==========================================
+    // APP INITIALIZATION
+    // ==========================================
+    window.onload = function() {
+      loadState();
+      if (state.currentUser) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('appScreen').classList.remove('hidden');
+        renderApp();
+      }
+    };
+  </script>
+</body>
+</html>
